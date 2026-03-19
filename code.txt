@@ -1,0 +1,88 @@
+import pandas as pd
+
+# Load CSV
+df = pd.read_csv("sensor_fusion_analysis.csv")
+
+
+# View first rows
+print(df.head())
+
+
+#plot sensor signals.
+import matplotlib.pyplot as plt
+
+#comparison of the sensor streams. 
+plt.figure(figsize=(12,6))
+
+plt.plot(df["audio_freq_hz"], label="Audio Frequency")
+plt.plot(df["vibration_g"], label="Vibration")
+plt.plot(df["thermal_temp_c"], label="Temperature")
+
+plt.legend()
+plt.title("Sensor Signals")
+plt.xlabel("Sample")
+plt.ylabel("Value")
+plt.show()
+
+
+#Rolling correlations
+#detect sensor disagreement or failure events.
+
+plt.figure(figsize=(10,5))
+
+plt.plot(df["rolling_corr_temp_audio"], label="Temp vs Audio")
+plt.plot(df["rolling_corr_temp_vibration"], label="Temp vs Vibration")
+plt.plot(df["rolling_corr_audio_vibration"], label="Audio vs Vibration")
+
+plt.legend()
+plt.title("Rolling Sensor Correlations")
+plt.show()
+
+#fault detection visualization.
+
+plt.figure(figsize=(10,5))
+
+plt.plot(df["audio_residual"], label="Audio Residual")
+plt.plot(df["rolling_residual_mean"], label="Rolling Residual Mean")
+
+plt.legend()
+plt.title("Model Residuals")
+plt.show()
+
+#PCA model
+#Clusters or shifts here often show system state changes.
+#shows sensors in 2D visual
+
+from sklearn.decomposition import PCA
+
+features = df[["audio_freq_hz","vibration_g","thermal_temp_c"]]
+
+pca = PCA(n_components=2)
+components = pca.fit_transform(features)
+
+plt.scatter(components[:,0], components[:,1], s=3)
+plt.title("Sensor Fusion PCA Visualization")
+plt.xlabel("PC1")
+plt.ylabel("PC2")
+plt.show()
+
+#This block is nice if I want to see things on an interactive tab.
+
+
+
+#shows sensor failure (AUDIO)
+#A timeline with failure flags
+plt.figure(figsize=(12,4))
+plt.plot(df["audio_freq_hz"], label="Audio")
+plt.scatter(df.index[df["silent_failure_flag"]==1],
+            df["audio_freq_hz"][df["silent_failure_flag"]==1],
+            color="red", label="Failure")
+
+plt.legend()
+plt.title("Sensor Failures Over Time")
+plt.show()
+print(pca.components_)
+
+# %%
+df.head()
+# %%
